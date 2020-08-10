@@ -5,11 +5,9 @@
  *
  * font: see http://freedesktop.org/software/fontconfig/fontconfig-user.html
  */
-static char *font = "Liberation Mono:pixelsize=12:antialias=true:autohint=true";
-/* Spare fonts */
+static char *font = "mono:pixelsize=14:antialias=true:autohint=true";
 static char *font2[] = {
-/*	"Inconsolata for Powerline:pixelsize=12:antialias=true:autohint=true", */
-/*	"Hack Nerd Font Mono:pixelsize=11:antialias=true:autohint=true", */
+    "Symbola:pixelsize=14:antialias=true:autohint=true"
 };
 
 static int borderpx = 2;
@@ -97,10 +95,10 @@ char *termname = "st-256color";
  *
  *	stty tabs
  */
-unsigned int tabspaces = 8;
+unsigned int tabspaces = 4;
 
 /* bg opacity */
-float alpha = 0.8, alphaUnfocused = 0.6;
+float alpha = 0.8, alphaUnfocused = 0.7;
 
 /* Terminal colors (16 first used in escape sequence) */
 static const char *colorname[] = {
@@ -140,6 +138,7 @@ unsigned int defaultbg = 256;
 static unsigned int defaultcs = 258;
 static unsigned int defaultrcs = 256;
 unsigned int bg = 256, bgUnfocused = 256;
+
 /*
  * Default shape of cursor
  * 2: Block ("█")
@@ -168,13 +167,6 @@ static unsigned int mousebg = 0;
  * doesn't match the ones requested.
  */
 static unsigned int defaultattr = 11;
-
-/*
- * Force mouse select/shortcuts while mask is active (when MODE_MOUSE is set).
- * Note that if you want to use ShiftMask with selmasks, set this to an other
- * modifier, set to 0 to not use it.
- */
-static uint forcemousemod = ShiftMask;
 
 /*
  * Xresources preferences to load at startup
@@ -213,42 +205,47 @@ ResourcePref resources[] = {
 };
 
 /*
+ * Force mouse select/shortcuts while mask is active (when MODE_MOUSE is set).
+ * Note that if you want to use ShiftMask with selmasks, set this to an other
+ * modifier, set to 0 to not use it.
+ */
+static uint forcemousemod = ShiftMask;
+
+/*
  * Internal mouse shortcuts.
  * Beware that overloading Button1 will disable the selection.
  */
-const unsigned int mousescrollincrement = 1;
+const unsigned int mousescrollincrement = 2;
 static MouseShortcut mshortcuts[] = {
-	/* mask                 button   function        argument                     release */
-	{ XK_ANY_MOD,           Button4, kscrollup,      {.i = mousescrollincrement}, 0, /* !alt */ -1 },
-	{ XK_ANY_MOD,           Button5, kscrolldown,    {.i = mousescrollincrement}, 0, /* !alt */ -1 },
-	{ XK_ANY_MOD,           Button3, selpaste,       {.i = 0},                    1 },
-	{ ShiftMask,            Button4, ttysend,        {.s = "\033[5;2~"} },
-	{ XK_ANY_MOD,           Button4, ttysend,        {.s = "\031"} },
-	{ ShiftMask,            Button5, ttysend,        {.s = "\033[6;2~"} },
-	{ XK_ANY_MOD,           Button5, ttysend,        {.s = "\005"} },
+	/* mask       button   function     argument                     release */
+	{ XK_ANY_MOD, Button4, kscrollup,   {.i = mousescrollincrement}, 0, /* !alt */ -1 },
+	{ XK_ANY_MOD, Button5, kscrolldown, {.i = mousescrollincrement}, 0, /* !alt */ -1 },
+	{ XK_ANY_MOD, Button3, selpaste,    {.i = 0},                    1 },
+	{ ShiftMask,  Button4, ttysend,     {.s = "\033[5;2~"} },
+	{ XK_ANY_MOD, Button4, ttysend,     {.s = "\031"} },
+	{ ShiftMask,  Button5, ttysend,     {.s = "\033[6;2~"} },
+	{ XK_ANY_MOD, Button5, ttysend,     {.s = "\005"} },
 };
 
 /* Internal keyboard shortcuts. */
-#define MODKEY Mod1Mask
 #define TERMMOD (ControlMask|ShiftMask)
 
 static Shortcut shortcuts[] = {
-	/* mask                 keysym          function        argument */
-	{ XK_ANY_MOD,           XK_Break,       sendbreak,      {.i =  0} },
-	{ ControlMask,          XK_Print,       toggleprinter,  {.i =  0} },
-	{ ShiftMask,            XK_Print,       printscreen,    {.i =  0} },
-	{ XK_ANY_MOD,           XK_Print,       printsel,       {.i =  0} },
-	{ TERMMOD,              XK_Prior,       zoom,           {.f = +1} },
-	{ TERMMOD,              XK_Next,        zoom,           {.f = -1} },
-	{ TERMMOD,              XK_Home,        zoomreset,      {.f =  0} },
-	{ TERMMOD,              XK_C,           clipcopy,       {.i =  0} },
-	{ TERMMOD,              XK_V,           clippaste,      {.i =  0} },
-	{ TERMMOD,              XK_Y,           selpaste,       {.i =  0} },
-	{ ShiftMask,            XK_Insert,      selpaste,       {.i =  0} },
-	{ TERMMOD,              XK_Num_Lock,    numlock,        {.i =  0} },
-    { MODKEY,               XK_l,           copyurl,        {.i =  0} },
-	{ ShiftMask,            XK_Page_Up,     kscrollup,      {.i = -1} },
-	{ ShiftMask,            XK_Page_Down,   kscrolldown,    {.i = -1} },
+    /* mask         keysym          function       argument */
+    { XK_ANY_MOD,   XK_Break,       sendbreak,     {.i =  0} },
+    { TERMMOD,      XK_Num_Lock,    numlock,       {.i =  0} },
+    { TERMMOD,      XK_plus,        zoom,          {.f = +1} },
+    { TERMMOD,      XK_L,           zoom,          {.f = +1} },
+    { TERMMOD,      XK_underscore,  zoom,          {.f = -1} },
+    { TERMMOD,      XK_H,           zoom,          {.f = -1} },
+    { ControlMask,  XK_equal,       zoomreset,     {.f =  0} },
+    { TERMMOD,      XK_C,           clipcopy,      {.i =  0} },
+    { TERMMOD,      XK_V,           clippaste,     {.i =  0} },
+    { TERMMOD,      XK_Y,           copyurl,       {.i =  0} },
+    { ShiftMask,    XK_Page_Up,     kscrollup,     {.i = -1} },
+    { TERMMOD,      XK_K,           kscrollup,     {.i = -1} },
+    { ShiftMask,    XK_Page_Down,   kscrolldown,   {.i = -1} },
+    { TERMMOD,      XK_J,           kscrolldown,   {.i = -1} },
 };
 
 /*
